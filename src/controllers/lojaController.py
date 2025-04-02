@@ -31,3 +31,4 @@ class LojaController:
 
     def mostrarLojas(self):
         return [loja.infos_dic() for loja in self.lojas]
+    

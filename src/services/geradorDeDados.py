@@ -8,6 +8,7 @@ class GeradorDeDados:
     # Método para gerar dados de uma loja fictícia
     def geradorDeLoja(self):
         return {
+            'id': self.fake.cnpj(),
             'nome': self.fake.company(),  # Gera o nome da loja
             'endereco': self.fake.address(),  # Gera um endereço completo
             'email': self.fake.company_email()  # Corrigido o typo 'emial' e usa email corporativo

@@ -1,6 +1,7 @@
 class Loja:
     # Método construtor da classe Loja
-    def __init__(self, nome, endereco, email):
+    def __init__(self, id, nome, endereco, email):
+        self.id = id
         # Atribui o nome da loja
         self.nome = nome  
         # Atribui o endereço da loja
@@ -11,6 +12,7 @@ class Loja:
     # Método que retorna as informações da loja em formato de dicionário
     def infos_dic(self):
         return {
+            'id': self.id,
             'nome': self.nome,       # Chave 'nome' com valor do atributo nome
             'endereco': self.endereco,  # Chave 'endereco' com valor do atributo endereco
             'email': self.email      # Chave 'email' com valor do atributo email
