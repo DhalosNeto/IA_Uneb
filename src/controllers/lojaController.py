@@ -1,14 +1,14 @@
-from services.geradorDeDados import GeradorDados
+from services.geradorDeDados import GeradorDeDados
 from models.lojaModel import Loja
 
 class LojaController:
     # Inicializa o controlador de lojas
     def __init__(self):
-        self.geradorDeDados = GeradorDados()  # Instância do gerador de dados fakes
+        self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
         self.lojas = []  # Lista para armazenar as lojas criadas
     
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
-    def criarLoja(self, loja: Loja):
+    def criarLoja(self, loja: Loja = None):
         # Se nenhuma loja for fornecida, gera dados fake
         if loja is None:
             loja = self.geradorDeDados.geradorDeLoja()
@@ -28,3 +28,6 @@ class LojaController:
         
         # Para cada loja gerada, chama o método criarLoja
         return [self.criarLoja(loja) for loja in lojas]
+
+    def mostrarLojas(self):
+        return [loja.infos_dic() for loja in self.lojas]
