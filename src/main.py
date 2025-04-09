@@ -37,6 +37,7 @@ while True:
         lojaView.mostrarVariasLojas(lojas)
 
     elif escolha == "4":
+        db_config.disconnect()
         print("Saindo...")
         break
 

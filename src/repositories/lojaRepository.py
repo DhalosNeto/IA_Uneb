@@ -40,7 +40,7 @@ class LojaRepository:
     
     def buscar_todas(self) -> List[Loja]:
         """Retorna todas as lojas cadastradas"""
-        query = "SELECT id, nome, endereco, email FROM lojas"
+        query = "SELECT * FROM lojas"
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute(query)
