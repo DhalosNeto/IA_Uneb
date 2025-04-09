@@ -2,9 +2,9 @@ class LojaView:
     @staticmethod
     def mostrarLoja(loja):
         print("--- Dados da Loja ---")
-        print(f'Nome:     {loja['nome']}')
-        print(f'Endereco: {loja['endereco']}')
-        print(f'Email:    {loja['email']}')
+        print(f'Nome:     {loja.nome}')
+        print(f'Endereco: {loja.endereco}')
+        print(f'Email:    {loja.email}')
     
     @staticmethod
     def mostrarVariasLojas(lojas):

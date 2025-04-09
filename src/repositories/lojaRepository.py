@@ -1,13 +1,36 @@
 import psycopg2
 from typing import List, Optional
 from models.lojaModel import Loja
-
+from db.config import DatabaseConfig
+db_config = DatabaseConfig()
 class LojaRepository:
-    def __init__(self, db_connection):
-        self.conn = db_connection
+    def __init__(self):
+        self.db_config = db_config
+        self.conn = None
+        self._conectar()
+    
+    def _conectar(self):
+        """Estabelece a conexão com o banco"""
+        try:
+            self.db_config.connect()
+            self.conn = self.db_config.connection
+            if not self.conn or self.conn.closed:
+                raise ConnectionError("Falha ao estabelecer conexão com o banco de dados")
+        except Exception as e:
+            print(f"Erro de conexão: {e}")
+            self.conn = None
+    
+    def _verificar_conexao(self):
+        """Verifica e reconecta se necessário"""
+        if not self.conn or self.conn.closed:
+            self._conectar()
     
     def salvar(self, loja: Loja) -> Optional[Loja]:
-        """Salva uma loja no banco de dados e retorna com ID"""
+        self._verificar_conexao()
+        if not self.conn:
+            print("Não há conexão com o banco de dados")
+            return None
+        
         query = """
         INSERT INTO lojas (nome, endereco, email)
         VALUES (%s, %s, %s)
@@ -40,7 +63,7 @@ class LojaRepository:
     
     def buscar_todas(self) -> List[Loja]:
         """Retorna todas as lojas cadastradas"""
-        query = "SELECT * FROM lojas"
+        query = "SELECT id, nome, endereco, email FROM lojas"
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute(query)

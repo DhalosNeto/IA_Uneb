@@ -10,7 +10,7 @@ class GeradorDeDados:
         return {
             'id': self.fake.cnpj(),
             'nome': self.fake.company(),  # Gera o nome da loja
-            'endereco': self.fake.address(),  # Gera um endereço completo
+            'endereco': self.fake.address().split(' / ')[1],  # Gera um endereço completo
             'email': self.fake.company_email()  # Corrigido o typo 'emial' e usa email corporativo
         }
     

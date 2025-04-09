@@ -1,12 +1,8 @@
 from repositories.lojaRepository import LojaRepository
 from controllers.lojaController import LojaController
-from db.config import DatabaseConfig
 from views.lojaView import LojaView
 
-db_config = DatabaseConfig()
-db_config.connect()
-
-lojaRepository = LojaRepository(db_config.connection)
+lojaRepository = LojaRepository()
 lojaController = LojaController()
 lojaView = LojaView()
 
@@ -37,7 +33,6 @@ while True:
         lojaView.mostrarVariasLojas(lojas)
 
     elif escolha == "4":
-        db_config.disconnect()
         print("Saindo...")
         break
 
