@@ -13,7 +13,8 @@ while True:
     print("1. Gerar lojas aleatórias")
     print("2. Gerar múltiplas lojas aleatórias")
     print("3. listar todas as lojas")
-    print("4. Sair")
+    print("4. Buscar loja por nome")
+    print("5. Sair")
 
     escolha = input("Escolha uma opção: ")
 
@@ -33,6 +34,11 @@ while True:
         lojaView.mostrarVariasLojas(lojas)
 
     elif escolha == "4":
+        nome = lojaView.get_nome_loja()
+        lojas = lojaController.buscarLojaPorNome(nome)
+        lojaView.mostrarVariasLojas(lojas)
+
+    elif escolha == "5":
         print("Saindo...")
         break
 

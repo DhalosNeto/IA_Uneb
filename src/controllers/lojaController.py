@@ -18,7 +18,7 @@ class LojaController:
         # Cria instância de Loja com os dados (desempacotando o dicionário)
         novaLoja = Loja(**loja)
         
-        return novaLoja  # Retorna a loja criada
+        return lojaRepository.salvar(novaLoja)  # Retorna a loja criada
 
     # Cria múltiplas lojas de uma vez
     def criarVariasLojas(self, quantidade):
@@ -26,8 +26,11 @@ class LojaController:
         lojas = self.geradorDeDados.gerarLojas(quantidade)
         
         # Para cada loja gerada, chama o método criarLoja
-        return [self.criarLoja(loja) for loja in lojas]
+        return [lojaRepository.salvar(self.criarLoja(loja)) for loja in lojas]
 
     def mostrarLojas(self):
         return lojaRepository.buscar_todas()
+    
+    def buscarLojaPorNome(self, nome: str):
+        return lojaRepository.buscar_por_nome(nome)
     

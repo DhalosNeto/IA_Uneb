@@ -101,3 +101,13 @@ class LojaRepository:
             self.conn.rollback()
             print(f"Erro ao atualizar loja: {e}")
             return False
+        
+    def buscar_por_nome(self, nome: str) -> List[Loja]:
+        query = "SELECT id, nome, endereco, email FROM lojas WHERE nome ILIKE %s"
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, (f'%{nome}%',))
+            return [Loja(*row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Erro ao buscar loja por nome: {e}")
+        return []

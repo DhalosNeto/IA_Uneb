@@ -20,3 +20,7 @@ class LojaView:
         except ValueError:
             print("Por favor, digite um número válido")
             return 0
+        
+    @staticmethod    
+    def get_nome_loja(self):
+        return input("Digite o nome da loja para buscar: ")
