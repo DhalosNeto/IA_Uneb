@@ -31,6 +31,6 @@ class LojaController:
     def mostrarLojas(self):
         return lojaRepository.buscar_todas()
     
-    def buscarLojaPorNome(self, nome: str):
+    def buscarLojaPorNome(self, nome):
         return lojaRepository.buscar_por_nome(nome)
     
