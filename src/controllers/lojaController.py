@@ -1,14 +1,13 @@
 from services.geradorDeDados import GeradorDeDados
+from services.busca import Busca
 from models.lojaModel import Loja
-from repositories.lojaRepository import LojaRepository
 
-lojaRepository = LojaRepository()
 
 class LojaController:
     # Inicializa o controlador de lojas
     def __init__(self):
         self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
-    
+        self.busca = Busca()  # Instância do serviço de busca
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
     def criarLoja(self, loja: Loja = None):
         # Se nenhuma loja for fornecida, gera dados fake
@@ -18,7 +17,7 @@ class LojaController:
         # Cria instância de Loja com os dados (desempacotando o dicionário)
         novaLoja = Loja(**loja)
         
-        return lojaRepository.salvar(novaLoja)  # Retorna a loja criada
+        return self.busca.salvarLoja(novaLoja)  # Retorna a loja criada
 
     # Cria múltiplas lojas de uma vez
     def criarVariasLojas(self, quantidade):
@@ -26,11 +25,11 @@ class LojaController:
         lojas = self.geradorDeDados.gerarLojas(quantidade)
         
         # Para cada loja gerada, chama o método criarLoja
-        return [lojaRepository.salvar(self.criarLoja(loja)) for loja in lojas]
+        return [self.busca.salvarLoja(self.criarLoja(loja)) for loja in lojas]
 
     def mostrarLojas(self):
-        return lojaRepository.buscar_todas()
+        return self.busca.buscarTodasLojas()
     
     def buscarLojaPorNome(self, nome):
-        return lojaRepository.buscar_por_nome(nome)
+        return self.busca.buscarLojaPorNome(nome)
     
