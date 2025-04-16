@@ -8,13 +8,14 @@ class LojaController:
     def __init__(self):
         self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
         self.ia = IAResposta()
+        self.busca = Busca()  # Instância do serviço de busca
 
     def responder_pergunta(self, pergunta: str) -> str:
         contexto = self.gerar_contexto_lojas()
         return self.ia.responder(pergunta, contexto)
     
-        self.busca = Busca()  # Instância do serviço de busca
-        self.busca = Busca()  # Instância do serviço de busca
+        
+        
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
     def criarLoja(self, loja: Loja = None):
         # Se nenhuma loja for fornecida, gera dados fake
