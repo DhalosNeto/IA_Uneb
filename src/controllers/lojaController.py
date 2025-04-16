@@ -7,7 +7,15 @@ class LojaController:
     # Inicializa o controlador de lojas
     def __init__(self):
         self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
+        self.ia = IAResposta()
         self.busca = Busca()  # Instância do serviço de busca
+
+    def responder_pergunta(self, pergunta: str) -> str:
+        contexto = self.gerar_contexto_lojas()
+        return self.ia.responder(pergunta, contexto)
+    
+        
+        
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
     def criarLoja(self, loja: Loja = None):
         # Se nenhuma loja for fornecida, gera dados fake
@@ -29,6 +37,13 @@ class LojaController:
 
     def mostrarLojas(self):
         return self.busca.buscarTodasLojas()
+    
+    def gerar_contexto_lojas(self) -> str:
+        lojas = lojaRepository.buscar_todas()
+        texto = ""
+        for loja in lojas:
+            texto += f"Nome: {loja.nome}. Endereço: {loja.endereco}. Email: {loja.email}.\n"
+        return texto
     
     def buscarLojaPorNome(self, nome):
         return self.busca.buscarLojaPorNome(nome)
