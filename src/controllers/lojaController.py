@@ -1,6 +1,7 @@
 from services.geradorDeDados import GeradorDeDados
 from models.lojaModel import Loja
 from repositories.lojaRepository import LojaRepository
+from services.perguntaResposta import IAResposta
 
 lojaRepository = LojaRepository()
 
@@ -8,6 +9,11 @@ class LojaController:
     # Inicializa o controlador de lojas
     def __init__(self):
         self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
+        self.ia = IAResposta()
+
+    def responder_pergunta(self, pergunta: str) -> str:
+        contexto = self.gerar_contexto_lojas()
+        return self.ia.responder(pergunta, contexto)
     
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
     def criarLoja(self, loja: Loja = None):
@@ -33,4 +39,11 @@ class LojaController:
     
     def buscarLojaPorNome(self, nome: str):
         return lojaRepository.buscar_por_nome(nome)
+    
+    def gerar_contexto_lojas(self) -> str:
+        lojas = lojaRepository.buscar_todas()
+        texto = ""
+        for loja in lojas:
+            texto += f"Nome: {loja.nome}. Endereço: {loja.endereco}. Email: {loja.email}.\n"
+        return texto
     
