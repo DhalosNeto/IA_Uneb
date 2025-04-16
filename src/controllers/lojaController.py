@@ -1,8 +1,6 @@
 from services.geradorDeDados import GeradorDeDados
 from services.busca import Busca
 from models.lojaModel import Loja
-from repositories.lojaRepository import LojaRepository
-from services.perguntaResposta import IAResposta
 
 
 class LojaController:
@@ -15,6 +13,7 @@ class LojaController:
         contexto = self.gerar_contexto_lojas()
         return self.ia.responder(pergunta, contexto)
     
+        self.busca = Busca()  # Instância do serviço de busca
         self.busca = Busca()  # Instância do serviço de busca
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
     def criarLoja(self, loja: Loja = None):
