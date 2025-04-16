@@ -35,7 +35,7 @@ while True:
         lojaView.mostrarVariasLojas(lojas)
 
     elif escolha == "4":
-        nome = lojaView.get_nome_loja()
+        nome = input("Digite o nome da loja para buscar: ")
         lojas = lojaController.buscarLojaPorNome(nome)
         lojaView.mostrarVariasLojas(lojas)
 
