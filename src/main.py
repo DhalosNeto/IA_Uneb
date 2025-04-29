@@ -2,7 +2,6 @@ from repositories.lojaRepository import LojaRepository
 from controllers.lojaController import LojaController
 from views.lojaView import LojaView
 
-lojaRepository = LojaRepository()
 lojaController = LojaController()
 lojaView = LojaView()
 
@@ -20,7 +19,7 @@ while True:
 
     if escolha == "1":
         loja = lojaController.criarLoja()
-        lojaRepository.salvar(loja)
+        lojaController.salvar(loja)
         print("Loja criada com sucesso")
 
     elif escolha == "2":

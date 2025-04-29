@@ -1,5 +1,5 @@
 from services.geradorDeDados import GeradorDeDados
-from services.busca import Busca
+from services.lojaService import LojaService
 from models.lojaModel import Loja
 
 
@@ -8,17 +8,18 @@ class LojaController:
     # Inicializa o controlador de lojas
     def __init__(self):
         self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
-        self.busca = Busca()  # Instância do serviço de busca
+        self.busca = LojaService()  # Instância do serviço de busca
     # Cria uma nova loja (pode receber dados ou gerar automaticamente)
+    
     def criarLoja(self, loja: Loja = None):
         # Se nenhuma loja for fornecida, gera dados fake
         if loja is None:
             loja = self.geradorDeDados.geradorDeLoja()
         
         # Cria instância de Loja com os dados (desempacotando o dicionário)
-        novaLoja = Loja(**loja)
         
-        return self.busca.salvarLoja(novaLoja)  # Retorna a loja criada
+        
+        return Loja(**loja)  # Retorna a loja criada
 
     # Cria múltiplas lojas de uma vez
     def criarVariasLojas(self, quantidade):
@@ -31,8 +32,9 @@ class LojaController:
     def mostrarLojas(self):
         return self.busca.buscarTodasLojas()
     
-
-    
     def buscarLojaPorNome(self, nome):
         return self.busca.buscarLojaPorNome(nome)
+    
+    def salvar(self, loja):
+        return self.busca.salvarLoja(loja)
     
