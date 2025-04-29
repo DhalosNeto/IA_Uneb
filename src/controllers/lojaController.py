@@ -3,6 +3,7 @@ from services.busca import Busca
 from models.lojaModel import Loja
 
 
+
 class LojaController:
     # Inicializa o controlador de lojas
     def __init__(self):
@@ -29,6 +30,8 @@ class LojaController:
 
     def mostrarLojas(self):
         return self.busca.buscarTodasLojas()
+    
+
     
     def buscarLojaPorNome(self, nome):
         return self.busca.buscarLojaPorNome(nome)
