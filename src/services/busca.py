@@ -33,3 +33,11 @@ class Busca:
         else:
             print("Nenhuma loja encontrada")
             return []
+        
+    def loja_existe(self, nome, endereco):
+        """Verifica se uma loja com nome e endereço já existe"""
+        lojas = self.lojaRepository.buscar_por_nome(nome)
+        for loja in lojas:
+                if loja.endereco.strip().lower() == endereco.strip().lower():
+                    return True
+        return False

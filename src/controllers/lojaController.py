@@ -1,7 +1,7 @@
-from services.geradorDeDados import GeradorDeDados
+from services.seleniumBusca import GeradorDeDados
 from services.busca import Busca
 from models.lojaModel import Loja
-
+from repositories.lojaRepository import LojaRepository
 
 class LojaController:
     # Inicializa o controlador de lojas
@@ -9,6 +9,7 @@ class LojaController:
         self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
         self.ia = IAResposta()
         self.busca = Busca()  # Instância do serviço de busca
+        self.lojaRepository = LojaRepository()
 
     def responder_pergunta(self, pergunta: str) -> str:
         contexto = self.gerar_contexto_lojas()
