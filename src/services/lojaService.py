@@ -1,6 +1,6 @@
 from repositories.lojaRepository import LojaRepository
 
-class Busca:
+class LojaService:
     def __init__(self):
         self.lojaRepository = LojaRepository()
     
