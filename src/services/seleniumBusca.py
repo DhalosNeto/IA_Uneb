@@ -4,13 +4,13 @@ from selenium.webdriver.chrome.options import Options
 from time import sleep
 from models.lojaModel import Loja
 from repositories.lojaRepository import LojaRepository
-from services.busca import Busca
+from services.lojaService import LojaService
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
 repo = LojaRepository()
-busca = Busca()
+servico_loja = LojaService()  # Instância do serviço que contém o método loja_existe()
 
 def iniciar_driver():
     options = Options()
@@ -35,11 +35,11 @@ def buscar_lojas_google_maps():
             nome = elemento.find_element(By.CSS_SELECTOR, 'a.hfpxzc').text.strip()
             endereco = elemento.find_element(By.CSS_SELECTOR, 'div.W4Efsd').text.strip()
 
-            if busca.loja_existe(nome, endereco):
+            if servico_loja.loja_existe(nome, endereco):
                 logging.info(f"Loja já existe: {nome}")
                 continue
 
-            loja = Loja(nome=nome, endereco=endereco, email=None)  # email é difícil de extrair
+            loja = Loja(nome=nome, endereco=endereco, email=None)
             logging.info(f"Inserindo loja: {loja.nome} - {loja.endereco}")
             repo.salvar(loja)
         except Exception as e:

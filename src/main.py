@@ -1,20 +1,20 @@
 from repositories.lojaRepository import LojaRepository
 from controllers.lojaController import LojaController
 from views.lojaView import LojaView
+from services.seleniumBusca import buscar_lojas_google_maps  # NOVO IMPORT
 
 lojaController = LojaController()
 lojaView = LojaView()
-
-
 
 while True:
     print("\nMenu:")
     print("1. Gerar lojas aleatórias")
     print("2. Gerar múltiplas lojas aleatórias")
-    print("3. listar todas as lojas")
+    print("3. Listar todas as lojas")
     print("4. Buscar loja por nome")
     print("5. Fazer pergunta")
     print("6. Sair")
+    print("7. Buscar lojas do Google Maps (Alagoinhas)")  # NOVA OPÇÃO
 
     escolha = input("Escolha uma opção: ")
 
@@ -47,6 +47,10 @@ while True:
         print("Saindo...")
         break
 
+    elif escolha == "7":
+        print("Buscando lojas no Google Maps...")
+        buscar_lojas_google_maps()
+        print("Busca finalizada!")
+
     else:
         print("Opção inválida. Tente novamente.")
-

@@ -1,56 +1,41 @@
-from services.seleniumBusca import GeradorDeDados
+from services.seleniumBusca import buscar_lojas_google_maps
 from models.lojaModel import Loja
 from repositories.lojaRepository import LojaRepository
 from services.lojaService import LojaService
-from models.lojaModel import Loja
 from services.perguntaResposta import IAResposta
 
-
-
 class LojaController:
-    # Inicializa o controlador de lojas
     def __init__(self):
-        self.geradorDeDados = GeradorDeDados()  # Instância do gerador de dados fakes
-        self.lojaService = LojaService()  # Instância do serviço de busca
+        self.lojaService = LojaService()
         self.ia = IAResposta()
         self.lojaRepository = LojaRepository()
-    # Cria uma nova loja (pode receber dados ou gerar automaticamente)
 
     def responder_pergunta(self, pergunta: str) -> str:
         contexto = self.gerar_contexto_lojas()
         return self.ia.responder(pergunta, contexto)
-    
-    def criarLoja(self, loja: Loja = None):
-        # Se nenhuma loja for fornecida, gera dados fake
-        if loja is None:
-            loja = self.geradorDeDados.geradorDeLoja()
-        
-        # Cria instância de Loja com os dados (desempacotando o dicionário)
-        
-        
-        return Loja(**loja)  # Retorna a loja criada
 
-    # Cria múltiplas lojas de uma vez
-    def criarVariasLojas(self, quantidade):
-        # Gera uma lista de dicionários com dados fake
-        lojas = self.geradorDeDados.gerarLojas(quantidade)
-        
-        # Para cada loja gerada, chama o método criarLoja
-        return [self.busca.salvarLoja(self.criarLoja(loja)) for loja in lojas]
+    def criarLoja(self, loja: Loja):
+        return self.lojaService.salvarLoja(loja)
+
+    def criarVariasLojas(self, lojas_data):
+        # lojas_data deve ser uma lista de dicionários ou objetos Loja
+        return [self.criarLoja(Loja(**dados)) for dados in lojas_data]
 
     def mostrarLojas(self):
-        return self.busca.buscarTodasLojas()
-    
+        return self.lojaService.buscarTodasLojas()
+
     def gerar_contexto_lojas(self) -> str:
         lojas = self.lojaService.buscar_todas()
         texto = ""
         for loja in lojas:
-            texto += f"Nome: {loja.nome}. Endereço: {loja.endereco}. Email: {loja.email}.\n"
+            texto += f"Nome: {loja.nome}. Endereço: {loja.endereco}. Email: {loja.email or 'Não informado'}.\n"
         return texto
-    
+
     def buscarLojaPorNome(self, nome):
-        return self.busca.buscarLojaPorNome(nome)
-    
+        return self.lojaService.buscarLojaPorNome(nome)
+
     def salvar(self, loja):
-        return self.busca.salvarLoja(loja)
-    
+        return self.lojaService.salvarLoja(loja)
+
+    def buscar_e_salvar_lojas_google(self):
+        buscar_lojas_google_maps()  # usa a função real com Selenium
