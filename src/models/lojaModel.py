@@ -1,6 +1,7 @@
+
 class Loja:
     # Método construtor da classe Loja
-    def __init__(self, id, nome, endereco, email):
+    def __init__(self, nome, endereco, email, id=None):
         self.id = id
         # Atribui o nome da loja
         self.nome = nome  

@@ -1,4 +1,3 @@
-from repositories.lojaRepository import LojaRepository
 from controllers.lojaController import LojaController
 from views.lojaView import LojaView
 from services.seleniumBusca import buscar_lojas_google_maps  # NOVO IMPORT

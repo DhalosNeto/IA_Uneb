@@ -3,13 +3,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from time import sleep
 from models.lojaModel import Loja
-from repositories.lojaRepository import LojaRepository
 from services.lojaService import LojaService
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-repo = LojaRepository()
 servico_loja = LojaService()  # Instância do serviço que contém o método loja_existe()
 
 def iniciar_driver():
@@ -21,9 +19,11 @@ def iniciar_driver():
 def buscar_lojas_google_maps():
     driver = iniciar_driver()
     driver.get("https://www.google.com/maps/search/lojas+em+alagoinhas+ba")
+    print('Aguarde enquanto as lojas são carregadas...')
     sleep(5)
 
     # Scroll para carregar mais resultados
+    print('Carregando mais resultados...')
     for _ in range(3):
         driver.execute_script("window.scrollBy(0, 1000);")
         sleep(2)
@@ -41,11 +41,8 @@ def buscar_lojas_google_maps():
 
             loja = Loja(nome=nome, endereco=endereco, email=None)
             logging.info(f"Inserindo loja: {loja.nome} - {loja.endereco}")
-            repo.salvar(loja)
+            servico_loja.salvarLoja(loja)
         except Exception as e:
             logging.error(f"Erro ao processar resultado: {e}")
 
     driver.quit()
-
-if __name__ == "__main__":
-    buscar_lojas_google_maps()
