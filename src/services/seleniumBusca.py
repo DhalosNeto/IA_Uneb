@@ -9,43 +9,67 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-repo = LojaRepository()
-servico_loja = LojaService()  # Instância do serviço que contém o método loja_existe()
+repo          = LojaRepository()
+servico_loja  = LojaService()            # tem o método loja_existe()
 
+# ------------------------------------------------------------------ #
 def iniciar_driver():
     options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
+    options.add_argument('--headless')
+    options.add_argument('--disable‑gpu')
     return webdriver.Chrome(options=options)
 
-def buscar_lojas_google_maps():
+# ------------------------------------------------------------------ #
+def buscar_lojas_google_maps(cidade="alagoinhas ba"):
     driver = iniciar_driver()
-    driver.get("https://www.google.com/maps/search/lojas+em+alagoinhas+ba")
+    driver.get(f"https://www.google.com/maps/search/lojas+em+{cidade.replace(' ', '+')}")
     sleep(5)
 
-    # Scroll para carregar mais resultados
+    # scroll para carregar mais resultados
     for _ in range(3):
-        driver.execute_script("window.scrollBy(0, 1000);")
+        driver.execute_script("window.scrollBy(0, 1200);")
         sleep(2)
 
-    resultados = driver.find_elements(By.CSS_SELECTOR, 'div.Nv2PK')  # cada cartão de loja
+    resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")   # cartão de cada local
 
+    total_inseridas = 0
     for elemento in resultados:
         try:
-            nome = elemento.find_element(By.CSS_SELECTOR, 'a.hfpxzc').text.strip()
-            endereco = elemento.find_element(By.CSS_SELECTOR, 'div.W4Efsd').text.strip()
-
-            if servico_loja.loja_existe(nome, endereco):
-                logging.info(f"Loja já existe: {nome}")
+            # -------- nome da loja --------
+            nome = elemento.find_element(By.CSS_SELECTOR, "a.hfpxzc").text.strip()
+            if not nome:
                 continue
 
+            # -------- endereço ------------
+            spans    = elemento.find_elements(By.CSS_SELECTOR, "span")
+            endereco = None
+            for span in spans:
+                texto = span.text.strip()
+                if any(p in texto.lower() for p in ["rua", "av", "alagoinhas", "bairro", "travessa", "praça"]):
+                    endereco = texto
+                    break
+
+            if not endereco:
+                logging.warning(f"Endereço não encontrado para: {nome}")
+                continue
+
+            # -------- evitar duplicata ----
+            if servico_loja.loja_existe(nome, endereco):
+                logging.info(f"Loja já existe: {nome} - {endereco}")
+                continue
+
+            # -------- salvar --------------
             loja = Loja(nome=nome, endereco=endereco, email=None)
-            logging.info(f"Inserindo loja: {loja.nome} - {loja.endereco}")
             repo.salvar(loja)
+            total_inseridas += 1
+            logging.info(f"Inserida: {loja.nome} - {loja.endereco}")
+
         except Exception as e:
             logging.error(f"Erro ao processar resultado: {e}")
 
     driver.quit()
+    logging.info(f"Busca concluída. {total_inseridas} novas lojas inseridas.")
 
+# ------------------------------------------------------------------ #
 if __name__ == "__main__":
     buscar_lojas_google_maps()

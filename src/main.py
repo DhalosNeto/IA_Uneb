@@ -14,7 +14,7 @@ while True:
     print("4. Buscar loja por nome")
     print("5. Fazer pergunta")
     print("6. Sair")
-    print("7. Buscar lojas do Google Maps (Alagoinhas)")  # NOVA OPÇÃO
+    print("7. Buscar lojas do Google Maps (Alagoinhas)")  
 
     escolha = input("Escolha uma opção: ")
 
