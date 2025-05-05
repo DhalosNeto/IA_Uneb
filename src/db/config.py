@@ -21,7 +21,7 @@ class DatabaseConfig:
             'password': os.getenv('DB_PASSWORD', 'postgres'),
             'port': os.getenv('DB_PORT', '5432')
         }
-
+    
     def connect(self):
         """Estabelece conexão com o banco de dados"""
         try:
@@ -49,6 +49,34 @@ class DatabaseConfig:
         except Exception as e:
             self.connection.rollback()
             print(f"Erro ao executar query: {e}")
+            return False
+
+    def criacaoTabelaLoja(self):
+        """Cria a tabela Loja no banco de dados"""
+        try:
+            query = """
+            CREATE TABLE IF NOT EXISTS lojas (
+                id SERIAL PRIMARY KEY,
+                nome VARCHAR(255) NOT NULL,
+                endereco VARCHAR(255) NOT NULL,
+                email VARCHAR(255)
+            );
+            """
+            self.cursor.execute(query)
+            self.connection.commit()
+            print("Tabela Loja criada com sucesso!")
+        except Exception as e:
+            print(f"Erro ao criar tabela: {e}")
+            self.connection.rollback()
+
+    def existeTabelaLoja(self):
+        """Verifica se a tabela Loja existe"""
+        try:
+            self.cursor.execute("SELECT to_regclass('public.lojas');")
+            result = self.cursor.fetchone()
+            return result[0] is not None
+        except Exception as e:
+            print(f"Erro ao verificar tabela: {e}")
             return False
 
     def fetch_data(self, query, params=None):

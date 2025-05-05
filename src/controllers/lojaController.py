@@ -1,6 +1,5 @@
 from services.seleniumBusca import buscar_lojas_google_maps
 from models.lojaModel import Loja
-from repositories.lojaRepository import LojaRepository
 from services.lojaService import LojaService
 from services.perguntaResposta import IAResposta
 
@@ -8,7 +7,6 @@ class LojaController:
     def __init__(self):
         self.lojaService = LojaService()
         self.ia = IAResposta()
-        self.lojaRepository = LojaRepository()
 
     def responder_pergunta(self, pergunta: str) -> str:
         contexto = self.gerar_contexto_lojas()
@@ -25,7 +23,7 @@ class LojaController:
         return self.lojaService.buscarTodasLojas()
 
     def gerar_contexto_lojas(self) -> str:
-        lojas = self.lojaService.buscar_todas()
+        lojas = self.lojaService.buscarTodasLojas()
         texto = ""
         for loja in lojas:
             texto += f"Nome: {loja.nome}. Endereço: {loja.endereco}. Email: {loja.email or 'Não informado'}.\n"

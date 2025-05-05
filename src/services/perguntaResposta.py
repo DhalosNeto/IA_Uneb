@@ -17,11 +17,7 @@ class IAResposta:
         contexto = contexto[:self.limite_contexto]
 
         try:
-            resultado = self.qa_pipeline({
-                'question': pergunta,
-                'context': contexto
-            })
-
+            resultado = self.qa_pipeline(question=pergunta, context=contexto)
             # Se a confiança for baixa, não responder
             if resultado['score'] < 0.3:
                 logging.warning(f"Resposta de baixa confiança: {resultado}")

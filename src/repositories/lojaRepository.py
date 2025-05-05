@@ -8,6 +8,8 @@ class LojaRepository:
         self.db_config = db_config
         self.conn = None
         self._conectar()
+        if db_config.existeTabelaLoja() == False:
+            db_config.criacaoTabelaLoja()
     
     def _conectar(self):
         """Estabelece a conexão com o banco"""
