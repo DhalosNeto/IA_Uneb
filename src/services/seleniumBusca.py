@@ -3,44 +3,40 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from time import sleep
 from models.lojaModel import Loja
-from repositories.lojaRepository import LojaRepository
 from services.lojaService import LojaService
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
 repo          = LojaRepository()
-servico_loja  = LojaService()            # tem o método loja_existe()
+servico_loja  = LojaService()            
 
-# ------------------------------------------------------------------ #
 def iniciar_driver():
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable‑gpu')
     return webdriver.Chrome(options=options)
 
-# ------------------------------------------------------------------ #
+
 def buscar_lojas_google_maps(cidade="alagoinhas ba"):
     driver = iniciar_driver()
     driver.get(f"https://www.google.com/maps/search/lojas+em+{cidade.replace(' ', '+')}")
     sleep(5)
 
-    # scroll para carregar mais resultados
+    print('Carregando mais resultados...')
     for _ in range(3):
         driver.execute_script("window.scrollBy(0, 1200);")
         sleep(2)
 
-    resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")   # cartão de cada local
+    resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")  
 
     total_inseridas = 0
     for elemento in resultados:
         try:
-            # -------- nome da loja --------
             nome = elemento.find_element(By.CSS_SELECTOR, "a.hfpxzc").text.strip()
             if not nome:
                 continue
 
-            # -------- endereço ------------
             spans    = elemento.find_elements(By.CSS_SELECTOR, "span")
             endereco = None
             for span in spans:
@@ -53,12 +49,10 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
                 logging.warning(f"Endereço não encontrado para: {nome}")
                 continue
 
-            # -------- evitar duplicata ----
             if servico_loja.loja_existe(nome, endereco):
                 logging.info(f"Loja já existe: {nome} - {endereco}")
                 continue
 
-            # -------- salvar --------------
             loja = Loja(nome=nome, endereco=endereco, email=None)
             repo.salvar(loja)
             total_inseridas += 1
@@ -70,6 +64,6 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
     driver.quit()
     logging.info(f"Busca concluída. {total_inseridas} novas lojas inseridas.")
 
-# ------------------------------------------------------------------ #
+
 if __name__ == "__main__":
     buscar_lojas_google_maps()
