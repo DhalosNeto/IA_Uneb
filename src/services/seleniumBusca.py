@@ -7,8 +7,6 @@ from services.lojaService import LojaService
 import logging
 
 logging.basicConfig(level=logging.INFO)
-
-repo          = LojaRepository()
 servico_loja  = LojaService()            
 
 def iniciar_driver():
@@ -56,7 +54,7 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
 
             loja = Loja(nome=nome, endereco=endereco, email=None)
 
-            repo.salvar(loja)
+            servico_loja.salvarLoja(loja)
             total_inseridas += 1
             logging.info(f"Inserida: {loja.nome} - {loja.endereco}")
 
