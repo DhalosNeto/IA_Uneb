@@ -3,20 +3,20 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from time import sleep
 from models.lojaModel import Loja
+from repositories.lojaRepository import LojaRepository
 from services.lojaService import LojaService
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-repo          = LojaRepository()
-servico_loja  = LojaService()            
+repo = LojaRepository()
+servico_loja = LojaService()
 
 def iniciar_driver():
     options = Options()
     options.add_argument('--headless')
-    options.add_argument('--disable‑gpu')
+    options.add_argument('--disable-gpu')
     return webdriver.Chrome(options=options)
-
 
 def buscar_lojas_google_maps(cidade="alagoinhas ba"):
     driver = iniciar_driver()
@@ -28,7 +28,7 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
         driver.execute_script("window.scrollBy(0, 1200);")
         sleep(2)
 
-    resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")  
+    resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")
 
     total_inseridas = 0
     for elemento in resultados:
@@ -37,13 +37,16 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
             if not nome:
                 continue
 
-            spans    = elemento.find_elements(By.CSS_SELECTOR, "span")
             endereco = None
-            for span in spans:
-                texto = span.text.strip()
-                if any(p in texto.lower() for p in ["rua", "av", "alagoinhas", "bairro", "travessa", "praça"]):
-                    endereco = texto
-                    break
+            try:
+                endereco = elemento.find_element(By.CSS_SELECTOR, 'button[data-item-id="address"]').text.strip()
+            except:
+                spans = elemento.find_elements(By.CSS_SELECTOR, "span")
+                for span in spans:
+                    texto = span.text.strip()
+                    if any(p in texto.lower() for p in ["rua", "av", "alagoinhas", "bairro", "travessa", "praça"]):
+                        endereco = texto
+                        break
 
             if not endereco:
                 logging.warning(f"Endereço não encontrado para: {nome}")
@@ -63,7 +66,6 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
 
     driver.quit()
     logging.info(f"Busca concluída. {total_inseridas} novas lojas inseridas.")
-
 
 if __name__ == "__main__":
     buscar_lojas_google_maps()
