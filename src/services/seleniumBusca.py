@@ -20,6 +20,7 @@ def iniciar_driver():
 
 def buscar_lojas_google_maps(cidade="alagoinhas ba"):
     driver = iniciar_driver()
+
     driver.get(f"https://www.google.com/maps/search/lojas+em+{cidade.replace(' ', '+')}")
     sleep(5)
 
@@ -57,15 +58,20 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
                 continue
 
             loja = Loja(nome=nome, endereco=endereco, email=None)
+
             repo.salvar(loja)
             total_inseridas += 1
             logging.info(f"Inserida: {loja.nome} - {loja.endereco}")
+
 
         except Exception as e:
             logging.error(f"Erro ao processar resultado: {e}")
 
     driver.quit()
+
     logging.info(f"Busca concluída. {total_inseridas} novas lojas inseridas.")
 
 if __name__ == "__main__":
     buscar_lojas_google_maps()
+
+
