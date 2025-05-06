@@ -30,8 +30,12 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
 
     resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK")
 
+
     total_inseridas = 0
     for elemento in resultados:
+        print(elemento.find_element(By.CSS_SELECTOR, "a.hfpxzc").get_attribute("aria-label").strip())
+
+
         try:
             nome = elemento.find_element(By.CSS_SELECTOR, "a.hfpxzc").text.strip()
             if not nome:
