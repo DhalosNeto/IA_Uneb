@@ -34,9 +34,9 @@ class LojaService:
             print("Nenhuma loja encontrada")
             return []
         
-    def loja_existe(self, nome, endereco):
-        """Verifica se uma loja com nome e endereço já existe"""
-        lojas = self.lojaRepository.buscar_por_nome(nome)
+    def loja_existe(self, endereco):
+        """Verifica se uma loja com endereço já existe"""
+        lojas = self.buscarTodasLojas()
         for loja in lojas:
                 if loja.endereco.strip().lower() == endereco.strip().lower():
                     return True

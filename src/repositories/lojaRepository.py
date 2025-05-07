@@ -34,13 +34,13 @@ class LojaRepository:
             return None
         
         query = """
-        INSERT INTO lojas (nome, endereco, email)
-        VALUES (%s, %s, %s)
+        INSERT INTO lojas (nome, endereco)
+        VALUES (%s, %s)
         RETURNING id
         """
         try:
             with self.conn.cursor() as cursor:
-                cursor.execute(query, (loja.nome, loja.endereco, loja.email))
+                cursor.execute(query, (loja.nome, loja.endereco))
                 loja.id = cursor.fetchone()[0]
                 self.conn.commit()
                 return loja
@@ -51,7 +51,7 @@ class LojaRepository:
     
     def buscar_por_id(self, id: int) -> Optional[Loja]:
         """Busca uma loja pelo ID"""
-        query = "SELECT id, nome, endereco, email FROM lojas WHERE id = %s"
+        query = "SELECT id, nome, endereco FROM lojas WHERE id = %s"
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute(query, (id,))
@@ -65,7 +65,7 @@ class LojaRepository:
     
     def buscar_todas(self) -> List[Loja]:
         """Retorna todas as lojas cadastradas"""
-        query = "SELECT id, nome, endereco, email FROM lojas"
+        query = "SELECT * FROM lojas"
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute(query)
@@ -91,12 +91,12 @@ class LojaRepository:
         """Atualiza os dados de uma loja"""
         query = """
         UPDATE lojas
-        SET nome = %s, endereco = %s, email = %s
+        SET nome = %s, endereco = %s
         WHERE id = %s
         """
         try:
             with self.conn.cursor() as cursor:
-                cursor.execute(query, (loja.nome, loja.endereco, loja.email, loja.id))
+                cursor.execute(query, (loja.nome, loja.endereco, loja.id))
                 self.conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
@@ -105,7 +105,7 @@ class LojaRepository:
             return False
         
     def buscar_por_nome(self, nome) -> List[Loja]:
-        query = "SELECT id, nome, endereco, email FROM lojas WHERE nome ILIKE %s"
+        query = "SELECT id, nome, endereco FROM lojas WHERE nome ILIKE %s"
         try:
             resultados = []
             with self.conn.cursor() as cursor:

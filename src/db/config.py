@@ -58,8 +58,7 @@ class DatabaseConfig:
             CREATE TABLE IF NOT EXISTS lojas (
                 id SERIAL PRIMARY KEY,
                 nome VARCHAR(255) NOT NULL,
-                endereco VARCHAR(255) NOT NULL,
-                email VARCHAR(255)
+                endereco VARCHAR(255) NOT NULL
             );
             """
             self.cursor.execute(query)
