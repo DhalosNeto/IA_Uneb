@@ -3,7 +3,7 @@ class LojaView:
     @staticmethod
     def mostrarLoja(loja: Loja):
         print()
-        print("--- Dados da Loja ---")
+        print(f"--- Dados da Loja #{loja.id} ---")
         print(f'Nome:     {loja.nome}')
         print(f'Endereco: {loja.endereco}')
     

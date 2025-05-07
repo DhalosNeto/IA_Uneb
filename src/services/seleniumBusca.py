@@ -26,9 +26,10 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
 
 
     print('Carregando mais resultados...')
-    for _ in range(10):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        sleep(2)
+    painel = driver.find_element(By.XPATH, '//div[@role="feed"]')
+    for _ in range(10):  
+        driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", painel)
+    sleep(2)
 
         
     resultados = driver.find_elements(By.CSS_SELECTOR, "div.Nv2PK.THOPZb.CpccDe ")

@@ -6,10 +6,10 @@ class IAResposta:
         # Carrega o modelo apenas uma vez
         self.qa_pipeline = pipeline(
             "question-answering",
-            model="pierreguillou/bert-base-cased-squad-v1.1-portuguese",
-            tokenizer="pierreguillou/bert-base-cased-squad-v1.1-portuguese"
+            model="pierreguillou/bert-large-cased-squad-v1.1-portuguese",
+            tokenizer="pierreguillou/bert-large-cased-squad-v1.1-portuguese"
         )
-        self.limite_contexto = 2000  # Limite seguro de caracteres (~512 tokens)
+        self.limite_contexto = 1000  # Limite seguro de caracteres (~512 tokens)
         logging.basicConfig(level=logging.INFO)
     
     def responder(self, pergunta: str, contexto: str) -> str:
@@ -19,8 +19,8 @@ class IAResposta:
         try:
             resultado = self.qa_pipeline(question=pergunta, context=contexto)
             # Se a confiança for baixa, não responder
-            if resultado['score'] < 0.3:
-                logging.warning(f"Resposta de baixa confiança: {resultado}")
+            if resultado['score'] < 0.15:
+                logging.warning(f"Resposta de baixa confiança: {resultado['answer']}")
                 return "Desculpe, não encontrei uma resposta clara para isso."
 
             return resultado['answer']
