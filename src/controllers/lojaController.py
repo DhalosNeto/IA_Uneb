@@ -24,7 +24,7 @@ class LojaController:
 
     def gerar_contexto_lojas(self) -> str:
         lojas = self.lojaService.buscarTodasLojas()
-        texto = "Na cidade de Alagoinhas, existem as seuintes lojas: "
+        texto = "Na cidade de Alagoinhas, existem as seguintes lojas: "
         texto += f", ".join([f"{loja.nome} (localizada em {loja.endereco})" for loja in lojas])
         return texto
 
