@@ -15,12 +15,13 @@ class DatabaseConfig:
         
         # Configurações do banco (lidas do ambiente)
         self.db_config = {
-            'host': os.getenv('DB_HOST', 'localhost'),
-            'database': os.getenv('DB_NAME', 'meu_banco'),
-            'user': os.getenv('DB_USER', 'postgres'),
-            'password': os.getenv('DB_PASSWORD', 'postgres'),
-            'port': os.getenv('DB_PORT', '5432')
+            'host': 'localhost',
+            'database': 'ia_uneb',
+            'user': 'postgres',
+            'password': 'host',
+            'port': 5432
         }
+
     
     def connect(self):
         """Estabelece conexão com o banco de dados"""

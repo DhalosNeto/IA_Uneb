@@ -40,7 +40,7 @@ def buscar_lojas_google_maps(cidade="alagoinhas ba"):
         novas_rodada = 0
 
         # Processa apenas os elementos novos (após o último índice processado)
-        for i in range(ultimo_index_processado + 1, len(resultados)):
+        for i in range(ultimo_index_processado, len(resultados)):
             try:
                 elemento = resultados[i]
                 nome = elemento.find_element(By.CSS_SELECTOR, "a.hfpxzc").get_attribute("aria-label")
