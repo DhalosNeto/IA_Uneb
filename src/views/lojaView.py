@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QThread, pyqtSignal
 import sys
 import os
+from views.dialogoRotaMapa import DialogoRotaMapa
 
 class LojaView:
     @staticmethod
@@ -28,7 +29,7 @@ class DialogoMostrarLojas(QDialog):
     def __init__(self, lista_de_lojas, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Lojas Existentes")
-        self.setMinimumSize(350, 400)
+        self.setMinimumSize(450, 550)
 
         layout = QVBoxLayout(self)
 
@@ -72,8 +73,109 @@ class DialogoMostrarLojas(QDialog):
         self.botao_ok.setFont(font_botao)
         self.botao_ok.setFixedHeight(35)
         layout.addWidget(self.botao_ok)
-
+    
         self.setLayout(layout)
+
+        botao_ver_rota = QPushButton("Ver Rota") 
+        botao_ver_rota.setFixedSize(90, 30) 
+        botao_ver_rota.clicked.connect(lambda _, dest=loja.endereco: self._abrir_rota(dest)) 
+
+
+    def _abrir_rota(self, destino_loja: str):"""Abre diálogo de rota após solicitar endereço de origem"""
+    origem, ok = QInputDialog.getText(
+        self,
+        "Endereço de Origem", 
+        "Por favor, insira seu endereço de partida (ex: Rua Principal, 123):"
+    )
+    
+    if ok and origem:
+        dialogo_rota = DialogoRotaMapa(origem, destino_loja, self)
+        dialogo_rota.exec()
+    elif ok:
+        QMessageBox.warning(self, "Aviso", "Por favor, insira um endereço válido.")
+
+# --- Diálogo para Mostrar Adicionar Loja Manualmente ---
+class DialogoAdicionarLojaManual(QDialog):
+    loja_adicionada = pyqtSignal(str, str) 
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Adicionar Loja Manualmente")
+        self.setFixedSize(400, 250) 
+
+        layout = QVBoxLayout(self) 
+
+        
+        self.label_nome = QLabel("Nome da Loja:")
+        self.input_nome = QLineEdit(self)
+        self.input_nome.setPlaceholderText("Digite o nome da loja")
+        layout.addWidget(self.label_nome)
+        layout.addWidget(self.input_nome)
+
+       
+        self.label_endereco = QLabel("Endereço da Loja:")
+        self.input_endereco = QLineEdit(self)
+        self.input_endereco.setPlaceholderText("Digite o endereço completo da loja")
+        layout.addWidget(self.label_endereco)
+        layout.addWidget(self.input_endereco)
+
+        
+        botoes_layout = QHBoxLayout()
+        self.botao_salvar = QPushButton("Salvar", self)
+        self.botao_salvar.clicked.connect(self.salvar_loja) 
+        self.botao_cancelar = QPushButton("Cancelar", self)
+        self.botao_cancelar.clicked.connect(self.reject) 
+
+        botoes_layout.addStretch() 
+        botoes_layout.addWidget(self.botao_salvar)
+        botoes_layout.addWidget(self.botao_cancelar)
+        botoes_layout.addStretch() 
+
+        layout.addLayout(botoes_layout) 
+
+        
+        font_label = self.label_nome.font()
+        font_label.setPointSize(10)
+        self.label_nome.setFont(font_label)
+        self.label_endereco.setFont(font_label)
+
+        font_input = self.input_nome.font()
+        font_input.setPointSize(10)
+        self.input_nome.setFont(font_input)
+        self.input_endereco.setFont(font_input)
+        self.input_nome.setFixedHeight(30)
+        self.input_endereco.setFixedHeight(30)
+
+        font_botao = self.botao_salvar.font()
+        font_botao.setPointSize(10)
+        self.botao_salvar.setFont(font_botao)
+        self.botao_cancelar.setFont(font_botao)
+        self.botao_salvar.setFixedHeight(35)
+        self.botao_cancelar.setFixedHeight(35)
+
+    def salvar_loja(self):
+        """
+        Método chamado ao clicar em Salvar. Valida os campos e emite o sinal
+        'loja_adicionada' se os dados forem válidos.
+        """
+        nome = self.input_nome.text().strip()
+        endereco = self.input_endereco.text().strip()
+
+        if not nome or not endereco:
+            QMessageBox.warning(self, "Campos Vazios", "Por favor, preencha o nome e o endereço da loja.")
+            return
+        
+        if not nome or not endereco:
+            QMessageBox.warning(self, "Erro", "Preencha todos os campos!")
+            return
+        
+        if len(nome) > 100:
+            QMessageBox.warning(self, "Erro", "Nome muito longo (máx. 100 caracteres)")
+            return
+    
+        self.loja_adicionada.emit(nome, endereco)
+        self.accept() 
+
 # --- Diálogo de Progresso para Inserir UMA Loja ---
 class DialogoProgressoLojaUnica(QDialog):
     insercao_concluida = pyqtSignal(str)
@@ -166,6 +268,7 @@ class WorkerBuscarLojasThread(QThread):
             self.erro.emit(str(e))
 # --- Página 1: Para fazer a pergunta e adicionar lojas ---
 class PaginaPergunta(QWidget):
+    
     perguntaSubmetida = pyqtSignal(str)
     lojasAtualizadas = pyqtSignal()
 
@@ -225,6 +328,14 @@ class PaginaPergunta(QWidget):
         layout.addLayout(linha_botoes)
 
 
+        self.botao_adicionar_manual = QPushButton('Adicionar Loja Manualmente', self)
+        font_botao_manual = self.botao_adicionar_manual.font()
+        font_botao_manual.setPointSize(10)
+        self.botao_adicionar_manual.setFont(font_botao_manual)
+        self.botao_adicionar_manual.setFixedHeight(35)
+        layout.addWidget(self.botao_adicionar_manual) # Adiciona o botão ao layout
+
+
         self.setLayout(layout)
 
         self.botao_submeter_pergunta.clicked.connect(self.submeter_pergunta_slot)
@@ -241,6 +352,16 @@ class PaginaPergunta(QWidget):
             self.rotulo_instrucao.setText("Pergunta enviada! Digite nova pergunta.")
         else:
             self.rotulo_instrucao.setText("Por favor, digite uma pergunta antes de submeter.")
+
+    def abrir_dialogo_adicionar_loja_manual_slot(self):
+        dialogo = DialogoAdicionarLojaManual(self.window())
+        dialogo.loja_adicionada.connect(self.emitir_loja_manual)
+        dialogo.exec()
+
+    def emitir_loja_manual(self, nome, endereco):
+        self.adicionarLojaManualSolicitada.emit(nome, endereco)
+        self.rotulo_instrucao.setText(f"Processando adição manual de '{nome}'...")
+
 
     def ao_finalizar_busca_google(self):
         QApplication.restoreOverrideCursor()
@@ -353,15 +474,35 @@ class JanelaPrincipal(QMainWindow):
         self.stacked_widget.addWidget(self.pagina_resposta)
         layout_principal_do_central.addWidget(self.stacked_widget)
 
-        # Equivalente a: opção 3 - Fazer pergunta
         self.pagina_pergunta.perguntaSubmetida.connect(self.mostrar_pagina_resposta_slot)
 
-        # Botão OK da resposta → volta para a tela de pergunta (reinício)
         self.pagina_resposta.voltarParaInicio.connect(self.mostrar_pagina_pergunta_slot)
 
         self.pagina_pergunta.lojasAtualizadas.connect(self.atualizar_lojas)
 
+        self.pagina_pergunta.adicionarLojaManualSolicitada.connect(self.processar_adicao_manual_loja)
+
         self.mostrar_pagina_pergunta_slot()
+
+    def processar_adicao_manual_loja(self, nome, endereco):
+        nova_loja = Loja(nome=nome, endereco=endereco)
+
+        dialogo_progresso = DialogoProgressoLojaUnica(nome_loja_a_inserir=nome, parent=self)
+        
+        dialogo_progresso.insercao_concluida.connect(self.ao_insercao_manual_concluida)
+        
+        dialogo_progresso.iniciar_simulacao_insercao()
+
+        self.controller.criarLoja(nova_loja)
+
+        dialogo_progresso.exec()
+
+    
+    def ao_insercao_manual_concluida(self, nome_loja):
+        QMessageBox.information(self, "Loja Adicionada", f"A loja '{nome_loja}' foi adicionada com sucesso!")
+        self.atualizar_lojas() 
+        self.pagina_pergunta.resetar_pagina() 
+        self.stacked_widget.setCurrentWidget(self.pagina_pergunta) 
 
     def atualizar_lojas(self):
         self.lojas_cadastradas = self.controller.mostrarLojas()
