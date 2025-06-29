@@ -296,39 +296,161 @@ class PaginaPergunta(QWidget):
 # --- Página 2: Para mostrar a resposta ---
 class PaginaResposta(QWidget):
     voltarParaInicio = pyqtSignal()
+    respostaValidada = pyqtSignal(str, str, bool)  # pergunta, resposta, acertou
+    
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.pergunta_atual = ""
+        self.resposta_atual = ""
         self.initUI()
 
     def initUI(self):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        
         self.label_titulo_resposta = QLabel("Resposta:")
         font_titulo = self.label_titulo_resposta.font()
         font_titulo.setPointSize(12); font_titulo.setBold(True)
         self.label_titulo_resposta.setFont(font_titulo)
         layout.addWidget(self.label_titulo_resposta)
+        
         self.label_resposta_conteudo = QLabel("A resposta para sua pergunta aparecerá aqui.")
         font_conteudo = self.label_resposta_conteudo.font()
         font_conteudo.setPointSize(11)
         self.label_resposta_conteudo.setFont(font_conteudo)
         self.label_resposta_conteudo.setWordWrap(True)
         layout.addWidget(self.label_resposta_conteudo)
+        
+        # Adicionar espaço flexível para empurrar a validação para baixo
         layout.addStretch(1)
-        self.botao_ok = QPushButton('OK', self)
+        
+        # Adicionar separador visual
+        self.label_separador = QLabel("─" * 50)
+        self.label_separador.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font_separador = self.label_separador.font()
+        font_separador.setPointSize(8)
+        self.label_separador.setFont(font_separador)
+        layout.addWidget(self.label_separador)
+        
+        # Pergunta sobre a qualidade da resposta
+        self.label_validacao = QLabel("A resposta da IA está correta?")
+        font_validacao = self.label_validacao.font()
+        font_validacao.setPointSize(12)
+        font_validacao.setBold(True)
+        self.label_validacao.setFont(font_validacao)
+        self.label_validacao.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.label_validacao)
+        
+        # Layout para os botões de validação
+        layout_validacao = QHBoxLayout()
+        
+        self.botao_resposta_correta = QPushButton('✓ Resposta Correta', self)
+        self.botao_resposta_correta.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3d8b40;
+            }
+        """)
+        font_correto = self.botao_resposta_correta.font()
+        font_correto.setPointSize(11)
+        self.botao_resposta_correta.setFont(font_correto)
+        self.botao_resposta_correta.setFixedHeight(45)
+        layout_validacao.addWidget(self.botao_resposta_correta)
+        
+        self.botao_resposta_incorreta = QPushButton('✗ Resposta Incorreta', self)
+        self.botao_resposta_incorreta.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #da190c;
+            }
+            QPushButton:pressed {
+                background-color: #c41e3a;
+            }
+        """)
+        font_incorreto = self.botao_resposta_incorreta.font()
+        font_incorreto.setPointSize(11)
+        self.botao_resposta_incorreta.setFont(font_incorreto)
+        self.botao_resposta_incorreta.setFixedHeight(45)
+        layout_validacao.addWidget(self.botao_resposta_incorreta)
+        
+        layout.addLayout(layout_validacao)
+        
+        # Adicionar um pouco de espaço entre a validação e o botão OK
+        layout.addSpacing(20)
+        
+        self.botao_ok = QPushButton('OK - Voltar ao Início', self)
         font_botao_ok = self.botao_ok.font()
         font_botao_ok.setPointSize(11)
         self.botao_ok.setFont(font_botao_ok)
         self.botao_ok.setFixedHeight(40)
+        self.botao_ok.setEnabled(False)  # Inicialmente desabilitado
         layout.addWidget(self.botao_ok)
+        
         self.setLayout(layout)
+        
+        # Conectar os botões
+        self.botao_resposta_correta.clicked.connect(self.marcar_como_correta)
+        self.botao_resposta_incorreta.clicked.connect(self.marcar_como_incorreta)
         self.botao_ok.clicked.connect(self.voltar_slot)
 
     def setResposta(self, pergunta, resposta):
+        self.pergunta_atual = pergunta
+        self.resposta_atual = resposta
         self.label_resposta_conteudo.setText(f"Você perguntou: '{pergunta}'\n\nResposta: {resposta}")
+        
+        # Resetar estado dos botões
+        self.botao_resposta_correta.setEnabled(True)
+        self.botao_resposta_incorreta.setEnabled(True)
+        self.botao_ok.setEnabled(False)
+        self.label_validacao.setText("A resposta da IA está correta?")
+
+    def marcar_como_correta(self):
+        self.validar_resposta(True)
+        
+    def marcar_como_incorreta(self):
+        self.validar_resposta(False)
+        
+    def validar_resposta(self, acertou):
+        # Emitir signal com os dados da validação
+        self.respostaValidada.emit(self.pergunta_atual, self.resposta_atual, acertou)
+        
+        # Desabilitar botões de validação e habilitar botão OK
+        self.botao_resposta_correta.setEnabled(False)
+        self.botao_resposta_incorreta.setEnabled(False)
+        self.botao_ok.setEnabled(True)
+        self.botao_ok.setFocus()
+        
+        # Atualizar texto de feedback
+        if acertou:
+            self.label_validacao.setText("✓ Marcado como CORRETO - Dados salvos!")
+            self.label_validacao.setStyleSheet("color: #4CAF50; font-weight: bold;")
+        else:
+            self.label_validacao.setText("✗ Marcado como INCORRETO - Dados salvos!")
+            self.label_validacao.setStyleSheet("color: #f44336; font-weight: bold;")
 
     def voltar_slot(self):
+        # Resetar a página para o próximo uso
+        self.label_validacao.setText("A resposta da IA está correta?")
+        self.label_validacao.setStyleSheet("")
         self.voltarParaInicio.emit()
+        
 # --- Janela Principal que gerencia as páginas e a lista de lojas ---
 class JanelaPrincipal(QMainWindow):
     def __init__(self, lojaController):
@@ -339,7 +461,7 @@ class JanelaPrincipal(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('IA uneb')
-        self.setGeometry(200, 200, 650, 470) 
+        self.setGeometry(200, 200, 650, 550)  # Aumentei a altura para acomodar os novos botões
 
         widget_central = QWidget()
         self.setCentralWidget(widget_central)
@@ -359,16 +481,42 @@ class JanelaPrincipal(QMainWindow):
         # Botão OK da resposta → volta para a tela de pergunta (reinício)
         self.pagina_resposta.voltarParaInicio.connect(self.mostrar_pagina_pergunta_slot)
 
+        # Signal para quando uma resposta for validada
+        self.pagina_resposta.respostaValidada.connect(self.processar_resposta_validada)
+
         self.pagina_pergunta.lojasAtualizadas.connect(self.atualizar_lojas)
 
         self.mostrar_pagina_pergunta_slot()
+
+    def processar_resposta_validada(self, pergunta, resposta, acertou):
+        """
+        Processa a validação da resposta da IA
+        Aqui você implementará a lógica para salvar no banco de dados
+        """
+        # TODO: Implementar salvamento no banco de dados
+        print(f"Pergunta: {pergunta}")
+        print(f"Resposta: {resposta}")
+        print(f"Acertou: {'Sim' if acertou else 'Não'}")
+        print("-" * 50)
+        
+        # Exemplo de como você pode estruturar os dados para salvar:
+        dados_para_salvar = {
+            'pergunta': pergunta,
+            'resposta': resposta,
+            'acertou': acertou,
+            'timestamp': None  # Você pode adicionar um timestamp aqui
+        }
+        
+        # Aqui você chamará sua função de salvar no banco quando implementar
+        # self.salvar_no_banco_dados(dados_para_salvar)
 
     def atualizar_lojas(self):
         self.lojas_cadastradas = self.controller.mostrarLojas()
 
     def mostrar_pagina_resposta_slot(self, pergunta_recebida):
         # Equivalente a: controller.responder_pergunta()
-        self.pagina_resposta.setResposta(pergunta_recebida, self.controller.responder_pergunta(pergunta_recebida))
+        resposta = self.controller.responder_pergunta(pergunta_recebida)
+        self.pagina_resposta.setResposta(pergunta_recebida, resposta)
         self.stacked_widget.setCurrentWidget(self.pagina_resposta)
 
     def mostrar_pagina_pergunta_slot(self):
