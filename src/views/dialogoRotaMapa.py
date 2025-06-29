@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLabel
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
+from urllib.parse import quote
 
 class DialogoRotaMapa(QDialog):
     """
@@ -30,8 +31,13 @@ class DialogoRotaMapa(QDialog):
         # Widget para exibir o conteúdo web (o mapa do Google)
         self.web_view = QWebEngineView(self)
         
-        url = f"https://www.google.com/maps/dir/?api=1&origin={origem}&destination={destino}"
+        # Codifica os endereços para URL e cria o objeto QUrl
+        origem_encoded = quote(origem)
+        destino_encoded = quote(destino)
+        url_string = f"https://www.google.com/maps/dir/?api=1&origin={origem_encoded}&destination={destino_encoded}"
         
+        # Converte a string para QUrl
+        url = QUrl(url_string)
         self.web_view.setUrl(url)
         layout.addWidget(self.web_view)
 

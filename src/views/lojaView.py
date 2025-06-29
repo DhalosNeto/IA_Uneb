@@ -3,7 +3,8 @@ from models.lojaModel import Loja
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLineEdit, QHBoxLayout,
     QPushButton, QLabel, QStackedWidget, QMainWindow,
-    QDialog, QProgressBar, QTextEdit, QScrollArea, QMessageBox
+    QDialog, QProgressBar, QTextEdit, QScrollArea, QMessageBox,
+    QInputDialog
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QThread, pyqtSignal
 import sys
@@ -24,12 +25,14 @@ class LojaView:
         for i, loja in enumerate(lojas, 1):
             texto += f"\nLoja {i}:\n{LojaView.mostrarLoja(loja)}"
         return texto
+
 # --- Diálogo para Mostrar Lojas Existentes ---
 class DialogoMostrarLojas(QDialog):
     def __init__(self, lista_de_lojas, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Lojas Existentes")
         self.setMinimumSize(450, 550)
+        self.lista_de_lojas = lista_de_lojas
 
         layout = QVBoxLayout(self)
 
@@ -40,7 +43,6 @@ class DialogoMostrarLojas(QDialog):
         label_titulo.setFont(font_titulo)
         layout.addWidget(label_titulo)
 
-    
         self.label_lojas = QLabel(self)
         self.label_lojas.setWordWrap(True)
         self.label_lojas.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -64,7 +66,15 @@ class DialogoMostrarLojas(QDialog):
 
         layout.addWidget(scroll_area)
 
-
+        # Layout para botões
+        botoes_layout = QHBoxLayout()
+        
+        # Botão para ver rotas (se houver lojas)
+        if lista_de_lojas:
+            self.botao_ver_rota = QPushButton("Ver Rota")
+            self.botao_ver_rota.setFixedSize(90, 30)
+            self.botao_ver_rota.clicked.connect(self._escolher_loja_para_rota)
+            botoes_layout.addWidget(self.botao_ver_rota)
 
         self.botao_ok = QPushButton("OK", self)
         self.botao_ok.clicked.connect(self.accept)
@@ -72,27 +82,47 @@ class DialogoMostrarLojas(QDialog):
         font_botao.setPointSize(10)
         self.botao_ok.setFont(font_botao)
         self.botao_ok.setFixedHeight(35)
-        layout.addWidget(self.botao_ok)
-    
+        botoes_layout.addWidget(self.botao_ok)
+        
+        layout.addLayout(botoes_layout)
         self.setLayout(layout)
 
-        botao_ver_rota = QPushButton("Ver Rota") 
-        botao_ver_rota.setFixedSize(90, 30) 
-        botao_ver_rota.clicked.connect(lambda _, dest=loja.endereco: self._abrir_rota(dest)) 
+    def _escolher_loja_para_rota(self):
+        """Permite ao usuário escolher uma loja para ver a rota"""
+        if not self.lista_de_lojas:
+            return
+            
+        # Cria lista de opções para o usuário escolher
+        opcoes = [f"{i+1}. {loja.nome}" for i, loja in enumerate(self.lista_de_lojas)]
+        
+        opcao_escolhida, ok = QInputDialog.getItem(
+            self,
+            "Escolher Loja",
+            "Selecione uma loja para ver a rota:",
+            opcoes,
+            0,
+            False
+        )
+        
+        if ok and opcao_escolhida:
+            # Extrai o índice da opção escolhida
+            indice = int(opcao_escolhida.split('.')[0]) - 1
+            loja_selecionada = self.lista_de_lojas[indice]
+            self._abrir_rota(loja_selecionada.endereco)
 
-
-    def _abrir_rota(self, destino_loja: str):"""Abre diálogo de rota após solicitar endereço de origem"""
-    origem, ok = QInputDialog.getText(
-        self,
-        "Endereço de Origem", 
-        "Por favor, insira seu endereço de partida (ex: Rua Principal, 123):"
-    )
-    
-    if ok and origem:
-        dialogo_rota = DialogoRotaMapa(origem, destino_loja, self)
-        dialogo_rota.exec()
-    elif ok:
-        QMessageBox.warning(self, "Aviso", "Por favor, insira um endereço válido.")
+    def _abrir_rota(self, destino_loja: str):
+        """Abre diálogo de rota após solicitar endereço de origem"""
+        origem, ok = QInputDialog.getText(
+            self,
+            "Endereço de Origem", 
+            "Por favor, insira seu endereço de partida (ex: Rua Principal, 123):"
+        )
+        
+        if ok and origem:
+            dialogo_rota = DialogoRotaMapa(origem, destino_loja, self)
+            dialogo_rota.exec()
+        elif ok:
+            QMessageBox.warning(self, "Aviso", "Por favor, insira um endereço válido.")
 
 # --- Diálogo para Mostrar Adicionar Loja Manualmente ---
 class DialogoAdicionarLojaManual(QDialog):
@@ -163,10 +193,6 @@ class DialogoAdicionarLojaManual(QDialog):
 
         if not nome or not endereco:
             QMessageBox.warning(self, "Campos Vazios", "Por favor, preencha o nome e o endereço da loja.")
-            return
-        
-        if not nome or not endereco:
-            QMessageBox.warning(self, "Erro", "Preencha todos os campos!")
             return
         
         if len(nome) > 100:
@@ -266,11 +292,13 @@ class WorkerBuscarLojasThread(QThread):
             self.finalizado.emit()
         except Exception as e:
             self.erro.emit(str(e))
+
 # --- Página 1: Para fazer a pergunta e adicionar lojas ---
 class PaginaPergunta(QWidget):
     
     perguntaSubmetida = pyqtSignal(str)
     lojasAtualizadas = pyqtSignal()
+    adicionarLojaManualSolicitada = pyqtSignal(str, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -278,7 +306,6 @@ class PaginaPergunta(QWidget):
 
     def initUI(self):
         layout = QVBoxLayout()
-
 
         self.rotulo_instrucao = QLabel('Projeto IA uneb - Perguntas e Respostas')
         font_rotulo = self.rotulo_instrucao.font()
@@ -308,7 +335,6 @@ class PaginaPergunta(QWidget):
         self.botao_buscar_google_maps.setFixedHeight(35)
         layout.addWidget(self.botao_buscar_google_maps)
 
-
         linha_botoes = QHBoxLayout()
 
         self.botao_mostrar_lojas = QPushButton('Mostrar Lojas Existentes', self)
@@ -327,14 +353,12 @@ class PaginaPergunta(QWidget):
 
         layout.addLayout(linha_botoes)
 
-
         self.botao_adicionar_manual = QPushButton('Adicionar Loja Manualmente', self)
         font_botao_manual = self.botao_adicionar_manual.font()
         font_botao_manual.setPointSize(10)
         self.botao_adicionar_manual.setFont(font_botao_manual)
         self.botao_adicionar_manual.setFixedHeight(35)
-        layout.addWidget(self.botao_adicionar_manual) # Adiciona o botão ao layout
-
+        layout.addWidget(self.botao_adicionar_manual)
 
         self.setLayout(layout)
 
@@ -342,7 +366,7 @@ class PaginaPergunta(QWidget):
         self.botao_buscar_google_maps.clicked.connect(self.buscar_lojas_google_maps_slot)
         self.botao_mostrar_lojas.clicked.connect(self.abrir_dialogo_mostrar_lojas_slot)
         self.botao_reiniciar.clicked.connect(self.reiniciar_programa_slot)
-
+        self.botao_adicionar_manual.clicked.connect(self.abrir_dialogo_adicionar_loja_manual_slot)
 
     def submeter_pergunta_slot(self):
         pergunta_usuario = self.caixa_pergunta.text().strip()
@@ -362,14 +386,11 @@ class PaginaPergunta(QWidget):
         self.adicionarLojaManualSolicitada.emit(nome, endereco)
         self.rotulo_instrucao.setText(f"Processando adição manual de '{nome}'...")
 
-
     def ao_finalizar_busca_google(self):
         QApplication.restoreOverrideCursor()
         QMessageBox.information(self, "Busca Finalizada", "A busca por lojas no Google Maps foi concluída com sucesso.")
         self.rotulo_instrucao.setText("Busca finalizada. Digite nova pergunta ou realize outra ação.")
-
-        self.lojasAtualizadas.emit()  # <- emite para notificar atualização
-
+        self.lojasAtualizadas.emit()
 
     def buscar_lojas_google_maps_slot(self):
         self.rotulo_instrucao.setText("Buscando lojas no Google Maps...")
@@ -380,11 +401,6 @@ class PaginaPergunta(QWidget):
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.thread_busca.start()
-    
-    def ao_finalizar_busca_google(self):
-        QApplication.restoreOverrideCursor()
-        QMessageBox.information(self, "Busca Finalizada", "A busca por lojas no Google Maps foi concluída com sucesso.")
-        self.rotulo_instrucao.setText("Busca finalizada. Digite nova pergunta ou realize outra ação.")
 
     def ao_erro_busca_google(self, erro_msg):
         QApplication.restoreOverrideCursor()
@@ -414,6 +430,7 @@ class PaginaPergunta(QWidget):
         if resposta == QMessageBox.StandardButton.Yes:
             QApplication.quit()
             os.execl(sys.executable, sys.executable, *sys.argv)
+
 # --- Página 2: Para mostrar a resposta ---
 class PaginaResposta(QWidget):
     voltarParaInicio = pyqtSignal()
@@ -450,6 +467,7 @@ class PaginaResposta(QWidget):
 
     def voltar_slot(self):
         self.voltarParaInicio.emit()
+
 # --- Janela Principal que gerencia as páginas e a lista de lojas ---
 class JanelaPrincipal(QMainWindow):
     def __init__(self, lojaController):
@@ -475,11 +493,8 @@ class JanelaPrincipal(QMainWindow):
         layout_principal_do_central.addWidget(self.stacked_widget)
 
         self.pagina_pergunta.perguntaSubmetida.connect(self.mostrar_pagina_resposta_slot)
-
         self.pagina_resposta.voltarParaInicio.connect(self.mostrar_pagina_pergunta_slot)
-
         self.pagina_pergunta.lojasAtualizadas.connect(self.atualizar_lojas)
-
         self.pagina_pergunta.adicionarLojaManualSolicitada.connect(self.processar_adicao_manual_loja)
 
         self.mostrar_pagina_pergunta_slot()
@@ -497,7 +512,6 @@ class JanelaPrincipal(QMainWindow):
 
         dialogo_progresso.exec()
 
-    
     def ao_insercao_manual_concluida(self, nome_loja):
         QMessageBox.information(self, "Loja Adicionada", f"A loja '{nome_loja}' foi adicionada com sucesso!")
         self.atualizar_lojas() 
