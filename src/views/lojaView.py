@@ -6,10 +6,11 @@ from PyQt6.QtWidgets import (
     QDialog, QProgressBar, QTextEdit, QScrollArea, QMessageBox,
     QInputDialog
 )
-from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QThread, pyqtSignal
+from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QThread
 import sys
 import os
-from views.dialogoRotaMapa import DialogoRotaMapa
+import webbrowser
+from urllib.parse import quote
 
 class LojaView:
     @staticmethod
@@ -110,19 +111,20 @@ class DialogoMostrarLojas(QDialog):
             loja_selecionada = self.lista_de_lojas[indice]
             self._abrir_rota(loja_selecionada.endereco)
 
-    def _abrir_rota(self, destino_loja: str):
-        """Abre diálogo de rota após solicitar endereço de origem"""
-        origem, ok = QInputDialog.getText(
-            self,
-            "Endereço de Origem", 
-            "Por favor, insira seu endereço de partida (ex: Rua Principal, 123):"
-        )
-        
+    def _abrir_rota(self, destino_loja: str): 
+        origem, ok = QInputDialog.getText(self, "Endereço de Origem", "Por favor, insira seu endereço de partida:")
         if ok and origem:
-            dialogo_rota = DialogoRotaMapa(origem, destino_loja, self)
-            dialogo_rota.exec()
+            origem_encoded = quote(origem)
+            destino_encoded = quote(destino_loja)
+            url = f"https://www.google.com/maps/dir/?api=1&origin={origem_encoded}&destination={destino_encoded}"
+            webbrowser.open(url)
         elif ok:
             QMessageBox.warning(self, "Aviso", "Por favor, insira um endereço válido.")
+
+    def _limpar_recursos_rota(self):
+        """Limpa recursos após fechar o diálogo de rota"""
+        print("Diálogo de rota fechado, recursos liberados")
+    
 
 # --- Diálogo para Mostrar Adicionar Loja Manualmente ---
 class DialogoAdicionarLojaManual(QDialog):
