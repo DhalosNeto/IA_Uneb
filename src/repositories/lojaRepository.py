@@ -2,6 +2,9 @@ import psycopg2
 from typing import List, Optional
 from models.lojaModel import Loja
 from db.config import DatabaseConfig
+from dotenv import load_dotenv
+from psycopg2 import OperationalError
+
 db_config = DatabaseConfig()
 class LojaRepository:
     def __init__(self):

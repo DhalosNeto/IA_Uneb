@@ -12,7 +12,7 @@ class DatabaseConfig:
     def __init__(self):
         self.connection = None
         self.cursor = None
-        
+        self.db_url = os.getenv("POSTGRES_URL")
         # Configurações do banco (lidas do ambiente)
         self.db_config = {
             'host': 'localhost',
