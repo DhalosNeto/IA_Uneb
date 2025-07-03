@@ -1,3 +1,4 @@
+from repositories.perguntasRepository import RepositorioPerguntaResposta
 from services.seleniumBusca import buscar_lojas_google_maps
 from models.lojaModel import Loja
 from PyQt6.QtWidgets import (
@@ -455,6 +456,20 @@ class PaginaResposta(QWidget):
         self.label_resposta_conteudo.setWordWrap(True)
         layout.addWidget(self.label_resposta_conteudo)
         layout.addStretch(1)
+
+        self.label_ia_certa = QLabel("A resposta da IA está certa?")
+        font_confirmacao = self.label_ia_certa.font()
+        font_confirmacao.setPointSize(10)
+        self.label_ia_certa.setFont(font_confirmacao)
+        layout.addWidget(self.label_ia_certa)
+
+        linha_botoes_confirmacao = QHBoxLayout()
+        self.botao_certo = QPushButton("Sim")
+        self.botao_errado = QPushButton("Não")
+        linha_botoes_confirmacao.addWidget(self.botao_certo)
+        linha_botoes_confirmacao.addWidget(self.botao_errado)
+        layout.addLayout(linha_botoes_confirmacao)
+
         self.botao_ok = QPushButton('OK', self)
         font_botao_ok = self.botao_ok.font()
         font_botao_ok.setPointSize(11)
@@ -462,13 +477,68 @@ class PaginaResposta(QWidget):
         self.botao_ok.setFixedHeight(40)
         layout.addWidget(self.botao_ok)
         self.setLayout(layout)
+
+        self.botao_certo.clicked.connect(self.salvar_correta)
+        self.botao_errado.clicked.connect(self.salvar_errada)
         self.botao_ok.clicked.connect(self.voltar_slot)
+
 
     def setResposta(self, pergunta, resposta):
         self.label_resposta_conteudo.setText(f"Você perguntou: '{pergunta}'\n\nResposta: {resposta}")
+    
+    def salvar_correta(self):
+        repositorio = RepositorioPerguntaResposta()
+        repositorio.atualizar_correcao(self.pergunta_atual, True)
+        self.voltarParaInicio.emit()
+
+    def salvar_errada(self):
+        dialogo = DialogoCorrigirResposta(self.pergunta_atual, self)
+        resultado = dialogo.exec()
+
+        if resultado == QDialog.DialogCode.Accepted:
+            nova_resposta = dialogo.get_resposta_corrigida()
+            if nova_resposta:
+                repositorio = RepositorioPerguntaResposta()
+                repositorio.salvar_resposta(self.pergunta_atual, nova_resposta, correta=True)
+                QMessageBox.information(self, "Salvo", "Nova resposta foi adicionada com sucesso!")
+            else:
+                QMessageBox.warning(self, "Campo vazio", "Nenhuma resposta foi digitada.")
+        # Volta para a tela principal de qualquer forma
+        self.voltarParaInicio.emit()
 
     def voltar_slot(self):
         self.voltarParaInicio.emit()
+
+# --- Página 3: Diálogo para Corrigir Resposta da IA ---
+class DialogoCorrigirResposta(QDialog):
+    def __init__(self, pergunta, parent=None):
+        super().__init__(parent)
+        self.pergunta = pergunta
+        self.setWindowTitle("Corrigir Resposta da IA")
+        self.setFixedSize(500, 300)
+
+        layout = QVBoxLayout(self)
+
+        self.label_info = QLabel(f"A IA errou a resposta.\nDigite a resposta correta para:\n\n\"{pergunta}\"")
+        layout.addWidget(self.label_info)
+
+        self.input_resposta = QTextEdit(self)
+        self.input_resposta.setPlaceholderText("Digite a resposta correta aqui...")
+        layout.addWidget(self.input_resposta)
+
+        botoes_layout = QHBoxLayout()
+        self.botao_adicionar = QPushButton("Adicionar", self)
+        self.botao_nao_sei = QPushButton("Não sei", self)
+        botoes_layout.addWidget(self.botao_adicionar)
+        botoes_layout.addWidget(self.botao_nao_sei)
+
+        layout.addLayout(botoes_layout)
+
+        self.botao_adicionar.clicked.connect(self.accept)
+        self.botao_nao_sei.clicked.connect(self.reject)
+
+    def get_resposta_corrigida(self):
+        return self.input_resposta.toPlainText().strip()
 
 # --- Janela Principal que gerencia as páginas e a lista de lojas ---
 class JanelaPrincipal(QMainWindow):
@@ -524,9 +594,20 @@ class JanelaPrincipal(QMainWindow):
         self.lojas_cadastradas = self.controller.mostrarLojas()
 
     def mostrar_pagina_resposta_slot(self, pergunta_recebida):
-        # Equivalente a: controller.responder_pergunta()
-        self.pagina_resposta.setResposta(pergunta_recebida, self.controller.responder_pergunta(pergunta_recebida))
+        self.repositorio = RepositorioPerguntaResposta()
+
+        resposta_salva = self.repositorio.buscar_resposta(pergunta_recebida)
+        if resposta_salva:
+            resposta = resposta_salva
+        else:
+            resposta = self.controller.responder_pergunta(pergunta_recebida)
+            self.repositorio.salvar_resposta(pergunta_recebida, resposta)
+
+        self.pagina_resposta.setResposta(pergunta_recebida, resposta)
+        self.pagina_resposta.pergunta_atual = pergunta_recebida
+        self.pagina_resposta.resposta_atual = resposta
         self.stacked_widget.setCurrentWidget(self.pagina_resposta)
+
 
     def mostrar_pagina_pergunta_slot(self):
         self.pagina_pergunta.resetar_pagina()

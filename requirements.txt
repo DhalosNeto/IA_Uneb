@@ -1,3 +1,6 @@
-Faker==37.1.0
+ollama==0.5.1
 psycopg2_binary==2.9.10
-python-dotenv==1.1.0
+PyQt6==6.9.1
+pyqt6_sip==13.10.2
+python-dotenv==1.1.1
+selenium==4.34.0
